@@ -1,0 +1,206 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id            String     @id @default(cuid())
+  name          String?
+  email         String?    @unique
+  image         String?
+  bio           String?
+  youtubeChannels YoutubeChannel[]
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  karma         Int        @default(0)
+  threadCoins   Int        @default(0)
+  posts         Post[]
+  comments      Comment[]
+  communities   CommunityMember[]
+  sentMessages     Message[]  @relation("SentMessages")
+  receivedMessages Message[]  @relation("ReceivedMessages")
+  votes         Vote[]
+  transactions  ThreadCoinTransaction[]
+  achievements  UserAchievement[]
+  unlockedItems UnlockedItem[]
+  newsArticles  NewsArticle[]
+}
+
+model YoutubeChannel {
+  id          String   @id @default(cuid())
+  channelId   String   @unique
+  name        String
+  description String
+  url         String
+  type        String   // "history" or "ai_tips"
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Community {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  members     CommunityMember[]
+  posts       Post[]
+  rules       Rule[]
+}
+
+model CommunityMember {
+  id          String    @id @default(cuid())
+  userId      String
+  communityId String
+  role        String    @default("MEMBER")
+  joinedAt    DateTime  @default(now())
+  user        User      @relation(fields: [userId], references: [id])
+  community   Community @relation(fields: [communityId], references: [id])
+
+  @@unique([userId, communityId])
+}
+
+model Post {
+  id          String    @id @default(cuid())
+  title       String
+  content     String
+  type        String    // text, image, video, link
+  authorId    String
+  communityId String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  author      User      @relation(fields: [authorId], references: [id])
+  community   Community @relation(fields: [communityId], references: [id])
+  comments    Comment[]
+  votes       Vote[]
+}
+
+model Comment {
+  id            String      @id @default(cuid())
+  content       String
+  authorId      String
+  postId        String?
+  newsArticleId String?
+  parentId      String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  author        User        @relation(fields: [authorId], references: [id])
+  post          Post?       @relation(fields: [postId], references: [id])
+  newsArticle   NewsArticle? @relation(fields: [newsArticleId], references: [id])
+  parent        Comment?    @relation("CommentReplies", fields: [parentId], references: [id])
+  replies       Comment[]   @relation("CommentReplies")
+  votes         Vote[]
+}
+
+model Message {
+  id          String   @id @default(cuid())
+  content     String
+  senderId    String
+  receiverId  String
+  createdAt   DateTime @default(now())
+  sender      User     @relation("SentMessages", fields: [senderId], references: [id])
+  receiver    User     @relation("ReceivedMessages", fields: [receiverId], references: [id])
+}
+
+model Vote {
+  id            String      @id @default(cuid())
+  value         Int         // 1 for upvote, -1 for downvote
+  userId        String
+  postId        String?
+  commentId     String?
+  newsArticleId String?
+  createdAt     DateTime    @default(now())
+  user          User        @relation(fields: [userId], references: [id])
+  post          Post?       @relation(fields: [postId], references: [id])
+  comment       Comment?    @relation(fields: [commentId], references: [id])
+  newsArticle   NewsArticle? @relation(fields: [newsArticleId], references: [id])
+
+  @@unique([userId, postId, commentId, newsArticleId])
+}
+
+model Rule {
+  id          String    @id @default(cuid())
+  title       String
+  description String
+  communityId String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  community   Community @relation(fields: [communityId], references: [id])
+}
+
+model NewsArticle {
+  id          String    @id @default(cuid())
+  title       String
+  content     String
+  summary     String
+  source      String
+  url         String
+  category    String    // Tech, Science, World, Health, Sports
+  imageUrl    String?
+  authorId    String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  author      User?     @relation(fields: [authorId], references: [id])
+  votes       Vote[]
+  comments    Comment[]
+}
+
+model ThreadCoinTransaction {
+  id          String   @id @default(cuid())
+  userId      String
+  amount      Int
+  type        String   // "EARN" or "SPEND"
+  reason      String   // e.g., "POST_UPVOTE", "COMMENT_UPVOTE", "ACHIEVEMENT_UNLOCK", "ITEM_PURCHASE"
+  metadata    Json?    // Additional transaction details
+  createdAt   DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id])
+}
+
+model Achievement {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  coinReward  Int
+  type        String   // e.g., "POST_COUNT", "COMMENT_COUNT", "UPVOTES_RECEIVED"
+  threshold   Int      // Number required to unlock
+  createdAt   DateTime @default(now())
+  users       UserAchievement[]
+}
+
+model UserAchievement {
+  id            String      @id @default(cuid())
+  userId        String
+  achievementId String
+  unlockedAt    DateTime    @default(now())
+  user          User        @relation(fields: [userId], references: [id])
+  achievement   Achievement @relation(fields: [achievementId], references: [id])
+
+  @@unique([userId, achievementId])
+}
+
+model StoreItem {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  type        String   // e.g., "AVATAR", "FLAIR", "EMOJI_PACK"
+  cost        Int
+  createdAt   DateTime @default(now())
+  users       UnlockedItem[]
+}
+
+model UnlockedItem {
+  id        String    @id @default(cuid())
+  userId    String
+  itemId    String
+  unlockedAt DateTime @default(now())
+  user      User      @relation(fields: [userId], references: [id])
+  item      StoreItem @relation(fields: [itemId], references: [id])
+
+  @@unique([userId, itemId])
+}
