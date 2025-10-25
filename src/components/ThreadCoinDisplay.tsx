@@ -1,6 +1,6 @@
 'use client';
 
-import { FiCoins } from 'react-icons/fi';
+import { FiDollarSign } from 'react-icons/fi';
 
 interface ThreadCoinDisplayProps {
   balance: number;
@@ -21,7 +21,7 @@ export default function ThreadCoinDisplay({
 
   return (
     <div className={`flex items-center gap-1 ${sizeClasses[size]}`}>
-      <FiCoins className="text-yellow-500" />
+      <FiDollarSign className="text-yellow-500" />
       <span className="font-medium">{balance.toLocaleString()}</span>
       {showLabel && (
         <span className="text-gray-600 dark:text-gray-400">ThreadCoins</span>

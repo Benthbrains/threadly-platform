@@ -14,6 +14,39 @@ interface Achievement {
   category: string;
 }
 
+const SAMPLE_ACHIEVEMENTS: Achievement[] = [
+  {
+    id: '1',
+    title: 'First Post',
+    description: 'Create your first post',
+    coinReward: 50,
+    progress: 0,
+    threshold: 1,
+    isUnlocked: false,
+    category: 'Posting'
+  },
+  {
+    id: '2',
+    title: 'Popular Post',
+    description: 'Get 100 upvotes on a single post',
+    coinReward: 100,
+    progress: 0,
+    threshold: 100,
+    isUnlocked: false,
+    category: 'Engagement'
+  },
+  {
+    id: '3',
+    title: 'News Junkie',
+    description: 'Read 10 news articles',
+    coinReward: 75,
+    progress: 0,
+    threshold: 10,
+    isUnlocked: false,
+    category: 'News'
+  }
+];
+
 interface AchievementProgress {
   [key: string]: {
     current: number;

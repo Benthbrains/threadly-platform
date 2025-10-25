@@ -1,3 +1,5 @@
+'use client';
+
 import CommunityCard from '@/components/CommunityCard';
 
 // This will be replaced with actual data from the database

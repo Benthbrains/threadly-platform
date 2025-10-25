@@ -1,3 +1,5 @@
+'use client';
+
 interface CommunityCardProps {
   name: string;
   description: string;
